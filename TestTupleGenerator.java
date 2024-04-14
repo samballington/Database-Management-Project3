@@ -60,16 +60,25 @@ public class TestTupleGenerator
     
         var resultTest = test.generate (tups);
         
-        for (var i = 0; i < resultTest.length; i++) {
-            out.println (tables [i]);
-            for (var j = 0; j < resultTest [i].length; j++) {
-                for (var k = 0; k < resultTest [i][j].length; k++) {
-                    out.print (resultTest [i][j][k] + ",");
-                } // for
-                out.println ();
-            } // for
-            out.println ();
-        } // for
+       // new code
+        Table[] dbTables = new Table[tables.length];
+
+        // Assuming 'attributes' and 'domains' are appropriately defined for each table
+        for (int i = 0; i < tables.length; i++) {
+            dbTables[i] = new Table(tables[i], attributes[i], domains[i], keys[i]);
+            for (Comparable[] tuple : resultTest[i]) {
+                dbTables[i].insert(tuple);
+            }
+        }
+
+        // Print the content of each Table for debugging
+        for (Table table : dbTables) {
+            System.out.println("Table: " + table.getName());  // Assume getName() method exists to get table name
+            for (Comparable[] tuple : table.getTuples()) {    // Assume getTuples() method exists to retrieve tuples
+                System.out.println(Arrays.toString(tuple));
+            }
+            System.out.println();  // Blank line for better separation between tables
+        }
     } // main
 
 } // TestTupleGenerator
