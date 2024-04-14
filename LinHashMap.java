@@ -126,13 +126,13 @@ public class LinHashMap <K, V>
     {
         Set<Map.Entry<K, V>> enSet = new HashSet<>();
 
-    for (Bucket bucket : hTable) {
-        for (int i = 0; i < bucket.nKeys; i++) {
-           
-            Map.Entry<K, V> entry = new AbstractMap.SimpleEntry<>(bucket.key[i], bucket.value[i]);
-            enSet.add(entry);
+        for (Bucket bucket : hTable) {
+            for (int i = 0; i < bucket.nKeys; i++) {
+                Map.Entry<K, V> entry = new AbstractMap.SimpleEntry<>(bucket.key[i], bucket.value[i]);
+                enSet.add(entry);
+            }
         }
-    }
+            
         return enSet;
     } // entrySet
 
@@ -157,15 +157,15 @@ public class LinHashMap <K, V>
      */
     public V put (K key, V value)
     {
-        var i    = h (key);                                                  // hash to i-th bucket chain
-        var bh   = hTable.get (i);                                           // start with home bucket
-        var oldV = find (key, bh, false);                                    // find old value associated with key
-        out.println ("LinearHashMap.put: key = " + key + ", h() = " + i + ", value = " + value);
+        keyCount++;    
+        var lf = loadFactor ();                                  
+        if (lf > THRESHOLD) split();
+    
 
-        keyCount++;                                                          // increment the key count
-        var lf = loadFactor ();                                              // compute the load factor
-        if (DEBUG) out.println ("put: load factor = " + lf);
-        if (lf > THRESHOLD) split ();                                        // split beyond THRESHOLD
+        var i    = findRightBucket (key);                                    // hash to i-th bucket chain
+        var bh   = hTable.get (i);                                           // start with home bucket
+        var oldV = find (key, bh, false);                             // find old value associated with key
+        out.println ("LinearHashMap.put: key = " + key + ", h() = " + i + ", value = " + value);
 
         var b = bh;
         while (true)  {
@@ -178,6 +178,7 @@ public class LinHashMap <K, V>
         b.next = bn;                                                         // add new bucket at end of chain
         return oldV;
     } // put
+
 
     /********************************************************************************
      * Print the hash table.
@@ -215,43 +216,36 @@ public class LinHashMap <K, V>
      * function 'h2'.  Increment 'isplit'.  If current split phase is complete,
      * reset 'isplit' to zero, and update the hash functions.
      */
-    private void split() {
-        out.println("split: bucket chain " + isplit);
-    
-        hTable.add(new Bucket());
-    
-        Bucket currentBucket = hTable.get(isplit);
-        Bucket newBucket = hTable.get(hTable.size() - 1);
-        Bucket previousBucket = null;
-    
-        while (currentBucket != null) {
-            for (int i = 0; i < currentBucket.nKeys; i++) {
-                K key = currentBucket.key[i];
-                int hashValue = h2(key);
-    
-                if (hashValue >= mod1) {
-                    newBucket.add(key, currentBucket.value[i]);
-                    currentBucket.key[i] = null;
-                    currentBucket.value[i] = null;
-                    currentBucket.nKeys--;
-                }
-            }
-    
-            previousBucket = currentBucket;
-            currentBucket = currentBucket.next;
-    
-            if (currentBucket != null && currentBucket.nKeys == 0) {
-                previousBucket.next = currentBucket.next;
+    private void split ()
+    {
+        out.println ("split: bucket chain " + isplit);
+
+        Bucket bucketToSplit = hTable.get(isplit);
+
+        Bucket newBucketChain = new Bucket();
+
+        for (int i = 0; i < bucketToSplit.nKeys; i++) {
+            K key = bucketToSplit.key[i];
+            V value = bucketToSplit.value[i];
+            int newIndex = h2(key);
+            if (newIndex != isplit) {
+                newBucketChain.add(key, value);
+                bucketToSplit.key[i] = null;
+                bucketToSplit.value[i] = null;
+                bucketToSplit.nKeys--;
             }
         }
-    
-        mod1 *= 2;
-        mod2 *= 2;
         isplit++;
-    
-        rehash(newBucket);
-    }
-    
+
+        if (isplit == mod1) {
+            isplit = 0;
+            mod1 *= 2;
+            mod2 *= 2;
+        }
+        hTable.add(newBucketChain);
+
+    } // split
+
     /********************************************************************************
      * Return the load factor for the hash table.
      * @return  the load factor
@@ -277,6 +271,12 @@ public class LinHashMap <K, V>
         } // for
         return null;
     } // find
+
+    private int findRightBucket(Object key){
+        int ret = h2(key);
+        if(ret >= hTable.size()) return h(key);
+        return ret; 
+    }
 
     /********************************************************************************
      * Hash the key using the low resolution hash function.
