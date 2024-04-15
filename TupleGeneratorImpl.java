@@ -52,7 +52,13 @@ public class TupleGeneratorImpl
         tablefks.put (name, foreignKey);
         counter++;
     } // addRelSchema
-    
+    public String getSchema(String tableName) {
+        return Arrays.toString(tableAttr.get(tableName));  // Returns a string of attributes
+    }
+
+    public String getPrimaryKey(String primaryKey) {
+        return Arrays.toString(tablepks.get(primaryKey));  // Returns the primary key for the table
+    }
     /*******************************************************************************************
      * Adding relation to Schema.  Convenience method.
      * @param name        the name of the table
@@ -258,6 +264,7 @@ public class TupleGeneratorImpl
         } // for
 
         return tempResult;
+
     } // generate
 
 } // TestGeneratorImpl class
