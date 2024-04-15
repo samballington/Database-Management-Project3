@@ -1,9 +1,12 @@
- 
+
 /*****************************************************************************************
  * @file  TestTupleGenerator.java
  *
  * @author   Sadiq Charaniya, John Miller
  */
+
+import java.util.Arrays;
+import java.util.List;
 
 import static java.lang.System.out;
 
@@ -18,59 +21,79 @@ public class TestTupleGenerator
      * The main method is the driver for TestGenerator.
      * @param args  the command-line arguments
      */
-    public static void main (String [] args)
-    {
-        var test = new TupleGeneratorImpl ();
+    public static void main (String [] args) {
+        var test = new TupleGeneratorImpl();
 
-        test.addRelSchema ("Student",
-                           "id name address status",
-                           "Integer String String String",
-                           "id",
-                           null);
-        
-        test.addRelSchema ("Professor",
-                           "id name deptId",
-                           "Integer String String",
-                           "id",
-                           null);
-        
-        test.addRelSchema ("Course",
-                           "crsCode deptId crsName descr",
-                           "String String String String",
-                           "crsCode",
-                           null);
-        
-        test.addRelSchema ("Teaching",
-                           "crsCode semester profId",
-                           "String String Integer",
-                           "crcCode semester",
-                           new String [][] {{ "profId", "Professor", "id" },
-                                            { "crsCode", "Course", "crsCode" }});
-        
-        test.addRelSchema ("Transcript",
-                           "studId crsCode semester grade",
-                           "Integer String String String",
-                           "studId crsCode semester",
-                           new String [][] {{ "studId", "Student", "id"},
-                                            { "crsCode", "Course", "crsCode" },
-                                            { "crsCode semester", "Teaching", "crsCode semester" }});
+        test.addRelSchema("Student",
+                "id name address status",
+                "Integer String String String",
+                "id",
+                null);
 
-        var tables = new String [] { "Student", "Professor", "Course", "Teaching", "Transcript" };
-        var tups   = new int [] { 10000, 1000, 2000, 50000, 5000 };
-    
-        var resultTest = test.generate (tups);
-        
-        for (var i = 0; i < resultTest.length; i++) {
-            out.println (tables [i]);
-            for (var j = 0; j < resultTest [i].length; j++) {
-                for (var k = 0; k < resultTest [i][j].length; k++) {
-                    out.print (resultTest [i][j][k] + ",");
-                } // for
-                out.println ();
-            } // for
-            out.println ();
-        } // for
+        test.addRelSchema("Professor",
+                "id name deptId",
+                "Integer String String",
+                "id",
+                null);
+
+        test.addRelSchema("Course",
+                "crsCode deptId crsName descr",
+                "String String String String",
+                "crsCode",
+                null);
+
+        test.addRelSchema("Teaching",
+                "crsCode semester profId",
+                "String String Integer",
+                "crcCode semester",
+                new String[][]{{"profId", "Professor", "id"},
+                        {"crsCode", "Course", "crsCode"}});
+
+        test.addRelSchema("Transcript",
+                "studId crsCode semester grade",
+                "Integer String String String",
+                "studId crsCode semester",
+                new String[][]{{"studId", "Student", "id"},
+                        {"crsCode", "Course", "crsCode"},
+                        {"crsCode semester", "Teaching", "crsCode semester"}});
+
+        String[] tableNames = new String[]{"Student", "Professor", "Course", "Teaching", "Transcript"};
+        int[] tups = new int[]{10000, 1000, 2000, 50000, 5000};
+
+        var resultTest = test.generate(tups);
+
+
+        Table[] tables = new Table[tableNames.length];
+        for (int i = 0; i < tableNames.length; i++) {
+            String attributes = test.getSchema(tableNames[i]);
+            String domains = convertAttributesToDomains(attributes);
+            String primaryKey = test.getPrimaryKey(tableNames[i]);
+            tables[i] = new Table(tableNames[i], attributes, domains, primaryKey);
+        }
+
+        for (int i = 0; i < tables.length; i++) {
+            for (Comparable[] tuple : resultTest[i]) {
+                tables[i].insert(tuple);
+            }
+        }
+
+        for (Table table : tables) {
+            System.out.println("Table: " + table.getName());
+            table.print();
+        }
+
     } // main
+
+    /**
+     * Convert attribute names to domain names. This is a simplified method and should be
+     * tailored to map attribute types to specific domain types used in the system.
+     * @param attributes Comma-separated string of attributes.
+     * @return Comma-separated string of domain types.
+     */
+    private static String convertAttributesToDomains(String attributes) {
+        return attributes.replaceAll("id|crsCode|studId", "Integer")
+                .replaceAll("name|address|status|deptId|crsName|descr|semester|grade", "String");
+    }
 
 } // TestTupleGenerator
 
