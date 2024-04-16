@@ -82,8 +82,8 @@ public class TestTupleGenerator
             //table.print();
         }
 
-        // Select Operation: Find student with id = v
-        KeyType searchKey = new KeyType(new Comparable[]{"v"}); // Replace 'id' with the actual ID value
+        // Select Operation: Find student with id = id
+        KeyType searchKey = new KeyType(new Comparable[]{"id"}); // Replace 'id' with the actual ID value
         Table selectedStudents = tables[0].select(searchKey);  // Assuming tables[0] is "Student"
 
         System.out.println("Selected Students:");
