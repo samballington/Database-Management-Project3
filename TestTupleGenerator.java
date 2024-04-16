@@ -79,8 +79,22 @@ public class TestTupleGenerator
 
         for (Table table : tables) {
             System.out.println("Table: " + table.getName());
-            table.print();
+            //table.print();
         }
+
+        // Select Operation: Find student with id = v
+        KeyType searchKey = new KeyType(new Comparable[]{"v"}); // Replace 'id' with the actual ID value
+        Table selectedStudents = tables[0].select(searchKey);  // Assuming tables[0] is "Student"
+
+        System.out.println("Selected Students:");
+        selectedStudents.print(); // select test (failed), need new select method with Keytype parameter
+
+        // Join Operation: Join Student with Transcript on id = studId
+        Table joinedTable = tables[0].join(tables[0]);  // join test, need new join method with attributes1, attributes2, table2 parameters
+
+        System.out.println("Joined Table:");
+        joinedTable.print();
+
 
     } // main
 
