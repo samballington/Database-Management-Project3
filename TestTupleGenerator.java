@@ -83,19 +83,23 @@ public class TestTupleGenerator
         }
 
         // Select Operation: Find student with id = id
-        KeyType searchKey = new KeyType(new Comparable[]{"id"}); // Replace 'id' with the actual ID value
+        long startTimeSelect = System.currentTimeMillis();
+        KeyType searchKey = new KeyType(new Comparable[]{123}); // Replace 'id' with the actual ID value
         Table selectedStudents = tables[0].select(searchKey);  // Assuming tables[0] is "Student"
-
+        long endTimeSelect = System.currentTimeMillis();
         System.out.println("Selected Students:");
         selectedStudents.print(); // select test (failed), need new select method with Keytype parameter
 
+        long startTimeJoin = System.currentTimeMillis();
         // Join Operation: Join Student with Transcript on id = studId
         Table joinedTable = tables[0].join(tables[0]);  // join test, need new join method with attributes1, attributes2, table2 parameters
+        long endTimeJoin = System.currentTimeMillis();
 
         System.out.println("Joined Table:");
         joinedTable.print();
 
-
+        System.out.println("Time for select operation: " + (endTimeSelect - startTimeSelect) + " ms");
+        System.out.println("Time for join operation: " + (endTimeJoin - startTimeJoin) + " ms");
     } // main
 
     /**
@@ -110,4 +114,3 @@ public class TestTupleGenerator
     }
 
 } // TestTupleGenerator
-
